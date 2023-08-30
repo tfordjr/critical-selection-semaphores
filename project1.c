@@ -40,10 +40,23 @@ int main(int argc, char** argv){
 	printf("Input filename is: %s\n", infile);
 	printf("Output filename is: %s\n", outfile);
 
-	pid_t childPid = fork();
+	
+	for(int i=0; i < 10; i++){
+		
+ 		pid_t childPid = fork();
+        	if (childPid == 0){
+           		printf("I am the child with PID %d and parent PID %d\n", getpid(), getppid());
+        	}
+
+		return 0;
+		
+	}
+	
+
+	/*pid_t childPid = fork();
         if (childPid == 0){
               printf("I am the child with PID %d and parent PID %d\n", getpid(), getppid());
-	}
+	} */
 	
 	
 }
@@ -55,4 +68,5 @@ void help(){
         printf("-i The argument following -i will be the input file. Required.\n");
         printf("-o The argument following -o will be the output file. Optional.\n");
 }
+
 
