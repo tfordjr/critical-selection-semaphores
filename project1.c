@@ -5,6 +5,8 @@ void help();
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 
@@ -53,20 +55,39 @@ int main(int argc, char** argv){
 		printf("File empty.\n");
 	}	
 	
+	//int parentID = getpid(); // Only parent performs this
 	
 	for(int i=0; i < numChildren; i++){
 		
- 		pid_t childPid = fork();
-        	if (childPid == 0){
-           		printf("I am the child with PID %d and parent PID %d\n", getpid(), getppid());
-        	}
+		if (getpid() != 0) {
+			pid_t childPid = fork();
+			printf("I am parent with ID %d and I am creating child with ID %d", getpid(), childPid);
+			 
+			if (childPid == -1) {
+				perror("fork");
+				return 1;
+			} else if (childPid == 0){
+           			printf("I am parent %d, created child %d with pid %d\n", getpid(), i+1, childPid);
+			} else {
+				printf("my pid is greater than 0, So I am not child\n");
+			}
 
-		return 0;
+		} else {
+			printf("I am child %d pid %d and I will now terminate", i+1, getpid());
+			return 0;
+		}
 		
 	}
 	
+	for (int i = 0; i < numChildren; i++) { // Only the parent should reach here and wait for children
+		wait(NULL);
+		printf("Waiting completed - should be one wait per child.\n");
+	}
+
+	printf("Child processes have completed.\n");
 	fclose(inputfile);
-	
+
+	return 0;	
 }
             
 void help(){
