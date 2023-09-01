@@ -48,30 +48,40 @@ int main(int argc, char** argv){
 	int numChildren;
 	char buffer[256];
 	if (fgets(buffer, sizeof(buffer), inputfile) != NULL) {
-		numChildren = (int)*buffer - 48;
-		printf("Firstline of file: %s", buffer);
+		
+		numChildren = atoi(buffer);
 		printf("Number of children: %d\n", numChildren);
+
 	} else {
 		printf("File empty.\n");
 	}	
 	
 
 	// Children Created Here
-	for (int i = 0; i < numChildren; i++) {
+	for (int i = 1; i < (numChildren + 1); i++) {
+	
+		pid_t childPid = fork();
+		int lineNumber = 0;
+
+		if (childPid == 0 ) {
+			printf("I am child %d and I will access lines %d and %d\n", i, 2*i, (2*i)+1);
 		
-		if (fork() == 0 ) {
-			printf("I am child %d...ppid() - %d\n", i+1, getppid());
+			while (fgets(buffer, sizeof(buffer), inputfile) != NULL) {
+				lineNumber++;
+				if (lineNumber == (2*i) || lineNumber == (2*i)-1) {
+					printf("%s", buffer);
+				}	
+			}
+
+				
+			fclose(inputfile);
+
 			exit(0);
-		}
-		
-		/*	
-        	if (childPid == -1) {
+		} else 	if (childPid == -1) {
             		perror("fork");
             		return 1;
-        	} else if (childPid == 0) {        	
-        	    	printf("I am child %d (PID: %d)\n", i+1, getpid());
-        	    	exit(0); 
-        	} */
+        	}  
+        	 
     	}
 	
 	for (int i = 0; i < numChildren; i++) { // Only the parent should reach here and wait for children
@@ -80,7 +90,7 @@ int main(int argc, char** argv){
 	}
 
 	printf("Child processes have completed.\n");
-	fclose(inputfile);
+	
 
 	return 0;	
 }
