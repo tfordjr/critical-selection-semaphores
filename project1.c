@@ -55,7 +55,8 @@ int main(int argc, char** argv){
 		printf("File empty.\n");
 	}	
 
-
+	numChildren = numChildren - 48;
+	printf("numChildren: %d\n", numChildren);
 	// Children Created Here
 	for (int i = 0; i < numChildren; i++) {
         		
@@ -79,7 +80,7 @@ int main(int argc, char** argv){
 	
 	for (int i = 0; i < numChildren; i++) { // Only the parent should reach here and wait for children
 		wait(NULL);
-		printf("Child Waiting (1 wait per child)...ppid() - %d\n", getppid());
+		//printf("Child Waiting (1 wait per child)...ppid() - %d\n", getppid());
 	}
 
 	printf("Child processes have completed.\n");
