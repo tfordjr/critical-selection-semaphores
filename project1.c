@@ -63,7 +63,7 @@ int main(int argc, char** argv){
 		//printf("I'm now creating a child %d\n", getpid());
 
 		if (fork() == 0 ) {
-			printf("I am child %d\n", i+1);
+			printf("I am child %d...ppid() - %d\n", i+1, getppid());
 			exit(0);
 		}
 		
@@ -79,7 +79,7 @@ int main(int argc, char** argv){
 	
 	for (int i = 0; i < numChildren; i++) { // Only the parent should reach here and wait for children
 		wait(NULL);
-		printf("Child Waiting (1 wait per child)...\n");
+		printf("Child Waiting (1 wait per child)...ppid() - %d\n", getppid());
 	}
 
 	printf("Child processes have completed.\n");
