@@ -1,6 +1,5 @@
 // Terry Ford Jr - CS 4760 - Project 1 - 08/29/23
 
-void help();
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +7,9 @@ void help();
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+void help();
+void reverse(int[], int);
 
 
 int main(int argc, char** argv){
@@ -43,7 +45,7 @@ int main(int argc, char** argv){
 	printf("Output filename is: %s\n", outfile);
 
 	FILE* inputfile = fopen(infile, "r");
-	FILE* outputfile = fopen(outfile, "w");
+	FILE* outputfilew = fopen(outfile, "w");
 
 	int numChildren;
 	char buffer[256];
@@ -55,7 +57,10 @@ int main(int argc, char** argv){
 	} else {
 		printf("File empty.\n");
 	}	
-	
+
+	fprintf(outputfilew, "%d\n", numChildren);
+	fclose(outputfilew);
+	FILE* outputfile = fopen(outfile, "a");	
 
 	// Children Created Here
 	for (int i = 1; i < (numChildren + 1); i++) {
@@ -68,13 +73,36 @@ int main(int argc, char** argv){
 		
 			while (fgets(buffer, sizeof(buffer), inputfile) != NULL) {
 				lineNumber++;
-				if (lineNumber == (2*i) || lineNumber == (2*i)-1) {
+				int arraySize;
+				if (lineNumber == (2*i)-1) {
+					arraySize = atoi(buffer);
+					fprintf(outputfile, "%d\n", arraySize);					
+				} else if (lineNumber == (2*i)) {
 					printf("%s", buffer);
-				}	
+					int arr[arraySize];
+					int count = 0;
+					
+					char* token = strtok(buffer, " ");
+					while (token != NULL && count < arraySize) {
+						arr[count] = atoi(token);
+						token = strtok(NULL, " ");
+						count++;
+					}
+					
+					reverse(arr, arraySize);
+
+					for (int i = 0; i < count; i++) {
+						fprintf(outputfile, "%d ", arr[i]);
+					}
+					fprintf(outputfile, "\n");
+
+				}
+					
 			}
 
 				
 			fclose(inputfile);
+			fclose(outputfile);
 
 			exit(0);
 		} else 	if (childPid == -1) {
@@ -103,4 +131,10 @@ void help(){
         printf("-o The argument following -o will be the output file. Optional.\n");
 }
 
-
+void reverse(int arr[], int size){
+	for (int i = 0; i < size/2; i++) {
+		int temp = arr[i];
+		arr[i] = arr[size -1 -i];
+		arr[size -1 -i] = temp;
+	}
+}
