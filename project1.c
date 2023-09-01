@@ -48,21 +48,17 @@ int main(int argc, char** argv){
 	int numChildren;
 	char buffer[256];
 	if (fgets(buffer, sizeof(buffer), inputfile) != NULL) {
-		numChildren = (int)*buffer;
+		numChildren = (int)*buffer - 48;
 		printf("Firstline of file: %s", buffer);
-		printf("Converted to int: %c\n", numChildren);
+		printf("Number of children: %d\n", numChildren);
 	} else {
 		printf("File empty.\n");
 	}	
+	
 
-	numChildren = numChildren - 48;
-	printf("numChildren: %d\n", numChildren);
 	// Children Created Here
 	for (int i = 0; i < numChildren; i++) {
-        		
-		//pid_t childPid = fork();
-		//printf("I'm now creating a child %d\n", getpid());
-
+		
 		if (fork() == 0 ) {
 			printf("I am child %d...ppid() - %d\n", i+1, getppid());
 			exit(0);
