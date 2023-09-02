@@ -68,17 +68,15 @@ int main(int argc, char** argv){
 		pid_t childPid = fork();
 		int lineNumber = 0;
 
-		if (childPid == 0 ) {
-			printf("I am child %d and I will access lines %d and %d\n", i, 2*i, (2*i)+1);
-		
-			while (fgets(buffer, sizeof(buffer), inputfile) != NULL) {
-				lineNumber++;
-				int arraySize;
-				if (lineNumber == (2*i)-1) {
-					arraySize = atoi(buffer);
+		if (childPid == 0 ) { // Children perform the following	
+					
+			while (fgets(buffer, sizeof(buffer), inputfile) != NULL) { 
+				lineNumber++;       // Each child loops through every line of file
+				int arraySize;      
+				if (lineNumber == (2*i)-1) {  // Child interacts only with assigned data
+					arraySize = atoi(buffer);   // Cast char* to int
 					fprintf(outputfile, "%d\n", arraySize);					
-				} else if (lineNumber == (2*i)) {
-					printf("%s", buffer);
+				} else if (lineNumber == (2*i)) {					
 					int arr[arraySize];
 					int count = 0;
 					
@@ -89,52 +87,46 @@ int main(int argc, char** argv){
 						count++;
 					}
 					
-					reverse(arr, arraySize);
+					reverse(arr, arraySize); // reversing array (pass by reference)
 
-					for (int i = 0; i < count; i++) {
-						fprintf(outputfile, "%d ", arr[i]);
+					for (int i = 0; i < count; i++) { // loop though array
+						fprintf(outputfile, "%d ", arr[i]);  // write each element to file
 					}
 					fprintf(outputfile, "\n");
 
-				}
-					
+				}					
 			}
-
 				
-			fclose(inputfile);
+			fclose(inputfile);   // Closing both files
 			fclose(outputfile);
-
-			exit(0);
-		} else 	if (childPid == -1) {
+			exit(0);            // Each child ends here
+		} else 	if (childPid == -1) {  // Error message for failed fork (child has PID -1)
             		perror("fork");
             		return 1;
-        	}  
-        	 
+        	}          	
+		wait(NULL);  // This Assures children perform in order
     	}
 	
 	for (int i = 0; i < numChildren; i++) { // Only the parent should reach here and wait for children
-		wait(NULL);
-		//printf("Child Waiting (1 wait per child)...ppid() - %d\n", getppid());
+		wait(NULL);	// Parent Waiting for children
 	}
 
 	printf("Child processes have completed.\n");
-	
-
 	return 0;	
 }
             
 void help(){
         printf("-h detecteed. Printing Help Message...\n");
         printf("The options for this program are: \n");
-        printf("-h Help feature. This takes no arguments.\n");
-        printf("-i The argument following -i will be the input file. Required.\n");
-        printf("-o The argument following -o will be the output file. Optional.\n");
+        printf("\t-h Help feature. This takes no arguments.\n");
+        printf("\t-i The argument following -i will be the input file. Optional - defaults to input.dat.\n");
+        printf("\t-o The argument following -o will be the output file. Optional - defaults to output.dat.\n");
 }
 
 void reverse(int arr[], int size){
 	for (int i = 0; i < size/2; i++) {
 		int temp = arr[i];
-		arr[i] = arr[size -1 -i];
-		arr[size -1 -i] = temp;
+		arr[i] = arr[size -(i+1)];
+		arr[size -(i+1)] = temp;
 	}
 }
