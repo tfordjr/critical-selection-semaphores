@@ -10,7 +10,6 @@
 #include "stack.h"
 
 void help();
-//void reverse(int[], int);
 
 int main(int argc, char** argv){
    int option;
@@ -18,27 +17,25 @@ int main(int argc, char** argv){
    char* outfile = "output.dat";
         while ( (option = getopt(argc, argv, "hi:o:")) != -1) {  // getopt h no args, i.o req args
                 switch(option) {
-                  case 'h':
-                    help();
-                    return 0;     // terminates if -h is present
-                  case 'i':
-                    printf("i...\n");
-		    for (int i = 1; i < argc; i++) {    // cycles through args 
-       			 if (strcmp(argv[i], "-i") == 0 && i + 1 < argc) {
-            		 infile = argv[i + 1];      // assigns arg follwing -i to string variable infile
-            	    	 break;
-        	         }
-		    }	
-		    break;
-	  	  case 'o':
-                    printf("o...\n");
-		    for (int i = 1; i < argc; i++) {  // Same process as above for -o
-                         if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
-                         outfile = argv[i + 1];
-                         break;
-                         }
-		    }
-		  }
+                	case 'h':
+                   		help();
+                    		return 0;     // terminates if -h is present
+                  	case 'i':                    
+		    		for (int i = 1; i < argc; i++) {    // cycles through args 
+       			 		if (strcmp(argv[i], "-i") == 0 && i + 1 < argc) {
+            		 		infile = argv[i + 1];  // assigns arg follwing -i to string variable infile
+            	    	 		break;
+        	         		}
+		    		}	
+		   	 break;
+	  	  	case 'o':
+		  		for (int i = 1; i < argc; i++) {  // Same process as above for -o
+                        		if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
+                        		outfile = argv[i + 1];
+                        		break;
+                        		} 
+		  		}
+		}
 	}
 	
 	printf("Input filename is: %s\n", infile);   // Prints accepted filenames
@@ -46,6 +43,11 @@ int main(int argc, char** argv){
 
 	FILE* inputfile = fopen(infile, "r");
 	FILE* outputfilew = fopen(outfile, "w");  // w upsed here to overwrite ouput file contents 
+
+	if (!inputfile || !outputfilew) {   // perror file open failure
+		perror("reverse: Error: File open operation failed!");
+		exit(0);
+	}
 
 	int numChildren;
 	char buffer[256];  // string used with fgets throughout the program
@@ -62,6 +64,11 @@ int main(int argc, char** argv){
 	fclose(outputfilew);    
 	FILE* outputfile = fopen(outfile, "a");	// open again in "a" so each child can append and not overwrite
 	pid_t pids[numChildren];  // Array of child pids
+
+	if (!outputfile) {   // file open failure error message
+		perror("reverse: Error: File open operation failed!");
+		exit(0);
+	}
 
 	for (int i = 1; i < (numChildren + 1); i++) {
 	
@@ -85,29 +92,25 @@ int main(int argc, char** argv){
 					char* token = strtok(buffer, " ");   // Each in separated by " " in string 
 					while (token != NULL && count < arraySize) {
 						
-						//arr[count] = atoi(token);  // Add each into to int array
-						push(atoi(token), stack, &top, arraySize); 
+						push(atoi(token), stack, &top, arraySize); // push each to stack 
 
 						token = strtok(NULL, " ");
 						count++;
 					}
 					
-					//reverse(arr, arraySize); // reversing array (pass by reference)
-
 					fprintf(outputfile, "%d: ", getpid());
-					for (int i = 0; i < count; i++) { // loop though array
-						//fprintf(outputfile, "%d ", arr[i]);  // write each element to file
-						fprintf(outputfile, "%d ", pop(stack, &top));
+					for (int i = 0; i < count; i++) { // loop though array			
+						fprintf(outputfile, "%d ", pop(stack, &top)); // pop and write
 					}
 					fprintf(outputfile, "\n");
 
 				}					
-			}
-				
+			}				
 			fclose(inputfile);   // Closing both files
 			exit(0);            // Each child ends here
+		
 		} else 	if (childPid == -1) {  // Error message for failed fork (child has PID -1)
-            		perror("fork");
+            		perror("reverse: Error: Fork has failed!");
             		return 1;
         	}          
 		pids[i-1] = childPid;	
@@ -136,12 +139,3 @@ void help(){   // Help message here
         printf("\t-o The argument following -o will be the output file. Optional - defaults to output.dat.\n");
 }
 
-/*
-void reverse(int arr[], int size){   // int Array reversing function 
-	for (int i = 0; i < size/2; i++) {
-		int temp = arr[i];
-		arr[i] = arr[size -(i+1)];
-		arr[size -(i+1)] = temp;
-	}
-}
-*/
