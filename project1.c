@@ -7,9 +7,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include "stack.h"
 
 void help();
-void reverse(int[], int);
+//void reverse(int[], int);
 
 int main(int argc, char** argv){
    int option;
@@ -76,21 +77,27 @@ int main(int argc, char** argv){
 					arraySize = atoi(buffer);   // first of pair is arraySize
 					//fprintf(outputfile, "%d\n", arraySize);				
 				} else if (lineNumber == (2*i)) {  // Second of pair is array to be reversed
-					int arr[arraySize];
+					int stack[arraySize];
+					int top = 0;
+					//int arr[arraySize];
 					int count = 0;
 					
 					char* token = strtok(buffer, " ");   // Each in separated by " " in string 
 					while (token != NULL && count < arraySize) {
-						arr[count] = atoi(token);  // Add each into to int array
+						
+						//arr[count] = atoi(token);  // Add each into to int array
+						push(atoi(token), stack, &top, arraySize); 
+
 						token = strtok(NULL, " ");
 						count++;
 					}
 					
-					reverse(arr, arraySize); // reversing array (pass by reference)
+					//reverse(arr, arraySize); // reversing array (pass by reference)
 
 					fprintf(outputfile, "%d: ", getpid());
 					for (int i = 0; i < count; i++) { // loop though array
-						fprintf(outputfile, "%d ", arr[i]);  // write each element to file
+						//fprintf(outputfile, "%d ", arr[i]);  // write each element to file
+						fprintf(outputfile, "%d ", pop(stack, &top));
 					}
 					fprintf(outputfile, "\n");
 
@@ -129,6 +136,7 @@ void help(){   // Help message here
         printf("\t-o The argument following -o will be the output file. Optional - defaults to output.dat.\n");
 }
 
+/*
 void reverse(int arr[], int size){   // int Array reversing function 
 	for (int i = 0; i < size/2; i++) {
 		int temp = arr[i];
@@ -136,3 +144,4 @@ void reverse(int arr[], int size){   // int Array reversing function
 		arr[size -(i+1)] = temp;
 	}
 }
+*/
