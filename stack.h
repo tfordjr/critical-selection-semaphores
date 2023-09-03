@@ -17,15 +17,17 @@ int isFull(int top, int max){
 
 int pop(int stack[], int* top){
 	if(isEmpty(stack, *top)){ 
-		printf("Stack is Empty! Can't pop stack.");
-	} else {
-		int temp = stack[*top];
-		(*top)--;
-		return temp;		
-	}
+		perror("reverse: Error: Stack Empty! Can't pop stack");
+		exit(0);
+	} 
+	
+	int temp = stack[*top];
+	(*top)--;
+	return temp;		
+	
 }
 
-int push(int input, int stack[], int* top, int max){
+void push(int input, int stack[], int* top, int max){
 	if(isFull(*top, max)){
 		printf("Stack is full! Can't push stack.");
 	} else {
