@@ -1,9 +1,13 @@
 GCC = gcc
 CFLAGS = -g -Wall -Wshadow
+LDFLAGS = -lrt -pthread
 
-reverse: reverse.o
-	$(GCC) $(CFLAGS) reverse.o -o reverse
+SRCS = master.c slave.c
 
-%.o: %.c 
-	$(GCC) $(CFLAGS) -c $<
+%: %.c
+	$(GCC) $(CFLAGS) $< -o $@ $(LDFLAGS)
 
+all: master slave
+
+clean:
+	rm -f master slave cstest logfile.*
