@@ -29,11 +29,8 @@ int main(){
                 exit(0);
         }
 
-	srand(time(NULL));
+	srand(getpid());
 	int randomDelay = rand() % 3 + 1;
-	
-
-
 
 	sem_t* file_semaphore = sem_open(SEM_NAME, O_CREAT, 0666, 1);
 	if (file_semaphore == SEM_FAILED){
@@ -41,27 +38,25 @@ int main(){
 		exit(0);
 	}
 
-
-
-
-	
-	sleep(randomDelay);	
 		
 	if (sem_wait(file_semaphore) == -1) {
 		perror("slave: Error: sem_wait failed\n");
 		exit(0);
 	}	
-
+		
+	sleep(randomDelay);
 	fprintf(outputfile, "%s File modified by process number %d\n", t, getpid());
 	fflush(outputfile);
+
 
 	if (sem_post(file_semaphore) == -1){
 		perror("slave: Error: sem_post failed");
 		exit(0);
 	}
-		
+
+	
 	logfile(file_semaphore);
-	sleep(randomDelay);
+	
 	
 	
 
