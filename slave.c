@@ -11,8 +11,8 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
-#define SHM_NAME "/shared_memory"
-#define SHM_SIZE 1
+
+
 #define SEM_NAME "/file_semaphore"
 
 void logfile(sem_t* file_semaphore);
@@ -33,21 +33,7 @@ int main(){
 	int randomDelay = rand() % 3 + 1;
 	
 
-	
 
-	
-	int shmid = shm_open(SHM_NAME, O_RDWR, 0);    //Creating shared memory
-        if (shmid == -1) {
-                perror("slave: Error: shm_open failed\n");
-                exit(0);
-        }
-
-        bool* lock = mmap(NULL, SHM_SIZE, PROT_READ, MAP_SHARED, shmid, 0);            // Attaching Shared Memory
-        if (lock == NULL) {
-                perror("slave: Error: mmap failed\n");
-                exit(0);
-        }
-	
 
 	sem_t* file_semaphore = sem_open(SEM_NAME, O_CREAT, 0666, 1);
 	if (file_semaphore == SEM_FAILED){
@@ -86,7 +72,6 @@ int main(){
 	sem_close(file_semaphore);
 	sem_unlink(SEM_NAME);
 
-	shmdt(lock);
 	return 0;
 }
 

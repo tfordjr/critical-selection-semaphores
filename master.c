@@ -17,9 +17,6 @@
 #include <sys/wait.h>
 #include "config.h"
 
-#define SHM_NAME "/shared_memory"
-#define SHM_SIZE 1
-
 void help();
 void sigCatch(int);
 void timeout(int);
@@ -58,29 +55,6 @@ int main(int argc, char** argv){
 		}
 	}
 
-	// Allocates shared memory boolean lock. lock will ensure one child works at a time on cstest
-	int shmid = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);   //  Creating shared memory
-	if (shmid == -1) {
-		perror("master: Error: shmget failed\n");
-		exit(0);
-	}
-
-	int trunc = ftruncate(shmid, SHM_SIZE);
-	if (trunc == -1){
-		perror("master: Error: truncation failed\n");
-		exit(0);
-	}
-
-	bool* lock = (bool*)mmap(NULL, SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shmid, 0); 
-	if (lock == MAP_FAILED) {
-		perror("master: Error: mmat failed\n");
-		exit(0);
-	}
-
-	*lock = 0; // Initializing lock to the 'unlocked' position so children can gain access to critical section
-	
-
-
 
 
 	signal(SIGINT, sigCatch);
@@ -110,7 +84,7 @@ int main(int argc, char** argv){
 	}
 
 	printf("Child processes have completed.\n");
-	shmdt(lock);
+	
 
 	logfile();
 	return 0;	
