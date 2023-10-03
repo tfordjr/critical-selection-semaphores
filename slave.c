@@ -10,16 +10,13 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-
-
-
 #define SEM_NAME "/file_semaphore"
 
 void logfile();
 
 int main(){	
-	char t[9];
-	strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)}));
+	char t[9]; //Time string buffer
+	strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)})); //update t with current time
 
 	char* outfile = "cstest";
 	FILE* outputfile = fopen(outfile, "a");
@@ -28,7 +25,7 @@ int main(){
                 exit(0);
         }
 
-	srand(getpid());
+	srand(getpid());  //delay determined by pid instead of system time ensuring different delays among children
 	int randomDelay = rand() % 3 + 1;
 
 	sem_t* file_semaphore = sem_open(SEM_NAME, O_CREAT, 0666, 1);
@@ -36,9 +33,8 @@ int main(){
 		perror("slave: Error: sem_open failed\n");
 		exit(0);
 	}
-
 	
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 5; i++) {  //for loop ensures no more than 5 accesses to crit section
 
 		if (sem_wait(file_semaphore) == -1) {
 			perror("slave: Error: sem_wait failed\n");
@@ -46,40 +42,40 @@ int main(){
 		}	
 		
 		sleep(randomDelay);
-		strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)}));
-		fprintf(outputfile, "%s File modified by process number %d\n", t, getpid());
+		strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)})); //update t with current time
+		fprintf(outputfile, "%s File modified by process number %d\n", t, getpid()); //access crit section
 		fflush(outputfile);
-
+		sleep(randomDelay);
 
 		if (sem_post(file_semaphore) == -1){
 			perror("slave: Error: sem_post failed");
 			exit(0);
 		}
-	
-		logfile();
+
+		logfile(); // log crit resource access to personal process logfile
 	}
 
-
-	fclose(outputfile);
-	
-	sem_close(file_semaphore);
+	fclose(outputfile);	
+	sem_close(file_semaphore);  //deallocating semaphore
 	sem_unlink(SEM_NAME);
 
 	return 0;
 }
 
 void logfile(){
-	char t[9];
-	strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)}));
-	
 	char outfile[16];
-	snprintf(outfile, sizeof(outfile), "logfile.%d", getpid());
+	snprintf(outfile, sizeof(outfile), "logfile.%d", getpid()); // appending logfile name with pid
 
 	FILE* outputfile = fopen(outfile, "a");
+	if(!outputfile) {
+		perror("slave: Error: File open failed!");
+		exit(0);
+	}
+
+	char t[9];
+	strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)}));  // updating t with current time
 	
-	strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)}));
-	fprintf(outputfile, "%s File modified by process number %d\n", t, getpid());
-	fflush(outputfile);
-	
+	fprintf(outputfile, "%s File modified by process number %d\n", t, getpid());  // writing to logfile
+	fflush(outputfile);	
 	fclose(outputfile);
 }

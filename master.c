@@ -60,11 +60,11 @@ int main(int argc, char** argv){
 
 
 
-	signal(SIGINT, sigCatch);
+	signal(SIGINT, sigCatch);  //Signal catching setup
 	signal(SIGALRM, timeout);
 	alarm(timeoutSeconds);
 
-	forkandwait(numChildren);
+	forkandwait(numChildren); // Most time is spent here creating and waiting for children
 
 	logfile();
 	return 0;	
@@ -75,7 +75,8 @@ void sigCatch(int signum) {
 		
 	sem_t* file_semaphore = sem_open(SEM_NAME, O_CREAT, 0666, 1);
 	sem_close(file_semaphore);
-	sem_unlink(SEM_NAME);
+	sem_unlink(SEM_NAME); //  deallocating semaphore
+
 	logfile();
 	kill(0, SIGKILL);
 }
@@ -83,23 +84,28 @@ void sigCatch(int signum) {
 void timeout(int signum){
 	printf("Timeout has occured. Now terminating all child processes.\n ");
 	
-	sem_t* file_semaphore = sem_open(SEM_NAME, O_CREAT, 0666, 1);
+	sem_t* file_semaphore = sem_open(SEM_NAME, O_CREAT, 0666, 1);  
 	sem_close(file_semaphore);
-	sem_unlink(SEM_NAME);
+	sem_unlink(SEM_NAME);  //  deallocating semaphore
 	
 	logfile();
 	kill(0, SIGKILL);
 }
 
 void logfile(){
-        char t[9];
-        strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)}));
+        char t[9];  //  Buffer for time string
+        strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)})); // update t with current time
 
         char outfile[22];
-        snprintf(outfile, sizeof(outfile), "logfile.master.%d", getpid());
+        snprintf(outfile, sizeof(outfile), "logfile.master.%d", getpid()); //logfile name
 
         FILE* outputfile = fopen(outfile, "a");
-        fprintf(outputfile, "%s Master process terminated - master(parent) pid: %d\n", t, getpid());
+	if (!outputfile){
+		perror("master: Error: logfile file open operation failed!");
+		return;
+	}
+
+	fprintf(outputfile, "%s Master process terminated - master(parent) pid: %d\n", t, getpid());
         fclose(outputfile);
 }
 
@@ -108,21 +114,19 @@ void forkandwait(int numChildren){
 	
 		pid_t childPid = fork();  // Create Child here
 
-		if (childPid == 0 ) { // Children perform the following	
-		 	if(execl("./slave","slave", (char *)NULL) == -1) {
+		if (childPid == 0 ) {   //Exec makes children execute slave executable
+		 	if(execl("./slave","slave", (char *)NULL) == -1) { 
 				perror("Child execution of slave failed ");				
 			}	
-			exit(0);
+			exit(0); 
 				
 		} else 	if (childPid == -1) {  // Error message for failed fork (child has PID -1)
             		perror("master: Error: Fork has failed!");
             		exit(0);
-        	}          
-			
-		//wait(NULL);  // This Assures children perform in order
+        	}     
     	}
 	
-	for (int i = 0; i < numChildren; i++) { // Only the parent should reach here and wait for children
+	for (int i = 0; i < numChildren; i++) {  //Only the parent will reach here and wait for children
 		wait(NULL);	// Parent Waiting for children
 	}
 
