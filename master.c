@@ -58,8 +58,6 @@ int main(int argc, char** argv){
 		}
 	}
 
-
-
 	signal(SIGINT, sigCatch);  //Signal catching setup
 	signal(SIGALRM, timeout);
 	alarm(timeoutSeconds);
