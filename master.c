@@ -17,10 +17,13 @@
 #include <sys/wait.h>
 #include "config.h"
 
+#define SEM_NAME "/file_semaphore"
+
 void help();
 void sigCatch(int);
 void timeout(int);
 void logfile();
+void forkandwait(int);
 
 int main(int argc, char** argv){
 	int option;   
@@ -61,41 +64,29 @@ int main(int argc, char** argv){
 	signal(SIGALRM, timeout);
 	alarm(timeoutSeconds);
 
-	for (int i = 1; i < (numChildren + 1); i++) {
-	
-		pid_t childPid = fork();  // Create Child here
-
-		if (childPid == 0 ) { // Children perform the following	
-		 	if(execl("./slave","slave", (char *)NULL) == -1) {
-				perror("Child execution of slave failed ");				
-			}	
-			exit(0);
-				
-		} else 	if (childPid == -1) {  // Error message for failed fork (child has PID -1)
-            		perror("master: Error: Fork has failed!");
-            		return 1;
-        	}          
-			
-		//wait(NULL);  // This Assures children perform in order
-    	}
-	
-	for (int i = 0; i < numChildren; i++) { // Only the parent should reach here and wait for children
-		wait(NULL);	// Parent Waiting for children
-	}
-
-	printf("Child processes have completed.\n");
-	
+	forkandwait(numChildren);
 
 	logfile();
 	return 0;	
 }
             
 void sigCatch(int signum) {
-	printf("Cannot end program with Ctrl+C");
+	printf("Ending program with interrupt signal...\n");
+		
+	sem_t* file_semaphore = sem_open(SEM_NAME, O_CREAT, 0666, 1);
+	sem_close(file_semaphore);
+	sem_unlink(SEM_NAME);
+	logfile();
+	kill(0, SIGKILL);
 }
 
 void timeout(int signum){
 	printf("Timeout has occured. Now terminating all child processes.\n ");
+	
+	sem_t* file_semaphore = sem_open(SEM_NAME, O_CREAT, 0666, 1);
+	sem_close(file_semaphore);
+	sem_unlink(SEM_NAME);
+	
 	logfile();
 	kill(0, SIGKILL);
 }
@@ -112,4 +103,29 @@ void logfile(){
         fclose(outputfile);
 }
 
+void forkandwait(int numChildren){
+	for (int i = 1; i < (numChildren + 1); i++) {
+	
+		pid_t childPid = fork();  // Create Child here
+
+		if (childPid == 0 ) { // Children perform the following	
+		 	if(execl("./slave","slave", (char *)NULL) == -1) {
+				perror("Child execution of slave failed ");				
+			}	
+			exit(0);
+				
+		} else 	if (childPid == -1) {  // Error message for failed fork (child has PID -1)
+            		perror("master: Error: Fork has failed!");
+            		exit(0);
+        	}          
+			
+		//wait(NULL);  // This Assures children perform in order
+    	}
+	
+	for (int i = 0; i < numChildren; i++) { // Only the parent should reach here and wait for children
+		wait(NULL);	// Parent Waiting for children
+	}
+
+	printf("Child processes have completed.\n");
+}
 

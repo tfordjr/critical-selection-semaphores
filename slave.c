@@ -17,8 +17,7 @@
 
 void logfile();
 
-int main(){
-	//time_t t = time(NULL);
+int main(){	
 	char t[9];
 	strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)}));
 
@@ -38,25 +37,28 @@ int main(){
 		exit(0);
 	}
 
+	
+	for (int i = 0; i < 5; i++) {
+
+		if (sem_wait(file_semaphore) == -1) {
+			perror("slave: Error: sem_wait failed\n");
+			exit(0);
+		}	
 		
-	if (sem_wait(file_semaphore) == -1) {
-		perror("slave: Error: sem_wait failed\n");
-		exit(0);
-	}	
-		
-	sleep(randomDelay);
-	strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)}));
-	fprintf(outputfile, "%s File modified by process number %d\n", t, getpid());
-	fflush(outputfile);
+		sleep(randomDelay);
+		strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)}));
+		fprintf(outputfile, "%s File modified by process number %d\n", t, getpid());
+		fflush(outputfile);
 
 
-	if (sem_post(file_semaphore) == -1){
-		perror("slave: Error: sem_post failed");
-		exit(0);
+		if (sem_post(file_semaphore) == -1){
+			perror("slave: Error: sem_post failed");
+			exit(0);
+		}
+	
+		logfile();
 	}
 
-	
-	logfile();
 
 	fclose(outputfile);
 	
