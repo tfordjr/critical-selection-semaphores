@@ -15,7 +15,7 @@
 
 #define SEM_NAME "/file_semaphore"
 
-void logfile(sem_t* file_semaphore);
+void logfile();
 
 int main(){
 	//time_t t = time(NULL);
@@ -45,6 +45,7 @@ int main(){
 	}	
 		
 	sleep(randomDelay);
+	strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)}));
 	fprintf(outputfile, "%s File modified by process number %d\n", t, getpid());
 	fflush(outputfile);
 
@@ -55,12 +56,7 @@ int main(){
 	}
 
 	
-	logfile(file_semaphore);
-	
-	
-	
-
-
+	logfile();
 
 	fclose(outputfile);
 	
@@ -70,7 +66,7 @@ int main(){
 	return 0;
 }
 
-void logfile(sem_t* file_semaphore){
+void logfile(){
 	char t[9];
 	strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)}));
 	
@@ -78,19 +74,10 @@ void logfile(sem_t* file_semaphore){
 	snprintf(outfile, sizeof(outfile), "logfile.%d", getpid());
 
 	FILE* outputfile = fopen(outfile, "a");
-
-	if(sem_wait(file_semaphore) == -1){
-		perror("slave: Error: sem_wait failed\n");
-		exit(0);
-	}
 	
+	strftime(t, sizeof(t), "%T", localtime(&(time_t){time(NULL)}));
 	fprintf(outputfile, "%s File modified by process number %d\n", t, getpid());
 	fflush(outputfile);
-	
-	if (sem_post(file_semaphore) == -1){
-		perror("slave: Error: sem_post failed\n");
-		exit(0);
-	}
 	
 	fclose(outputfile);
 }
